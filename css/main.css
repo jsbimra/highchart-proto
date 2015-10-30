@@ -163,13 +163,13 @@ nav a:hover {
    ========================================================================== */
 .main-container{
   overflow: auto;
-  height: 70%;
+  height: 76%;
   position: absolute;
   left: auto;
   right: auto;
   width: 100%;
   bottom: 0;
-  top: 88px;}
+  top: 104px;}
 .main-section{border-top: 20px solid #e44d26; background: #f16529; padding:0 15px 15px; color:#fff;}
     .main-section h3{font-size:1em; color:#fff;}
 
