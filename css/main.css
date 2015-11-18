@@ -71,12 +71,12 @@ body {
    =================== */
 
 .header-container {
-    border-bottom: 20px solid #e44d26;
+    border-bottom: 10px solid #e44d26;
 }
 
 .footer-container,
 .main aside {
-    border-top: 20px solid #e44d26;
+    border-top: 5px solid #e44d26;
 }
 .footer-container{
     width:100%;
@@ -146,7 +146,7 @@ nav a:hover {
 .footer-container {background: #2085E5; border-top-color: #0C66BB;}
 .footer-container footer {
     color: white;
-    padding: 20px 0;
+    padding: 5px 0;
 }
 .footer-container a{color:#fff;}
 .footer-container footer h3{margin: 0; font-size: 1em; display: inline-block; float: right;}
@@ -170,7 +170,7 @@ nav a:hover {
   width: 100%;
   bottom: 0;
   top: 104px;}
-.main-section{border-top: 20px solid #e44d26; background: #f16529; padding:0 15px 15px; color:#fff;}
+.main-section{border-top: 10px solid #E4CC26; background: #F1DF29; padding:0 15px 15px; color:#fff;}
     .main-section h3{font-size:1em; color:#fff;}
 
 .chart-container{min-height: 500px; margin-top: 20px;}
