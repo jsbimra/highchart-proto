@@ -32,8 +32,6 @@ var benchmarkObj = {
 
                     var yAxisBothObj = {title:''};
 
-
-
                     /* Plot Y-Axis on both the sides if its requested by the type of graph */
                     if('yAxisBothSideObj' in propObj){
                         if(propObj.yAxisBothSideObj && propObj.yAxisBothSideObj == 'yes'){
@@ -51,6 +49,14 @@ var benchmarkObj = {
                         }
                     }
 
+                    //Set Opposite yAxis label format value
+                    if(propObj.yAxisOppLabelFormatVal !== undefined){
+                        if(yAxisBothObj){
+                            yAxisBothObj['labels'] =  {
+                                format: propObj.yAxisOppLabelFormatVal
+                            }
+                        }
+                    }
 
                     /*  If parsedData.length is greater than 1, then set chart option 
                         for second chart with dynamic values from its corresponding hidden input field attrs
@@ -65,7 +71,9 @@ var benchmarkObj = {
                         if('secChartFieldIdVal' in propObj){
                             if(propObj.secChartFieldIdVal !== undefined){
                                 propObj.chartTitle            = $('#'+propObj.secChartFieldIdVal).data('chart-title');
+                                propObj.columnStacking        = $('#'+propObj.secChartFieldIdVal).data('stacking');
                                 propObj.chartSubTitle         = $('#'+propObj.secChartFieldIdVal).data('sub-title');
+                                propObj.chartCustomLabelVal   = $('#'+propObj.secChartFieldIdVal).data('chart-custom-label');
                                 propObj.chartHeight           = $('#'+propObj.secChartFieldIdVal).data('chart-height');
                                 propObj.yAxisText             = $('#'+propObj.secChartFieldIdVal).data('yaxis-text');
                                 propObj.yAxisBothSideObj      = $('#'+propObj.secChartFieldIdVal).data('yaxis-both-side');
@@ -77,8 +85,9 @@ var benchmarkObj = {
                                 propObj.chartMarker           = $('#'+propObj.secChartFieldIdVal).data('marker');
                                 propObj.chartMarkerLineWidth  = $('#'+propObj.secChartFieldIdVal).data('marker-line-width');
                                 propObj.chartMarkerLineColor  = $('#'+propObj.secChartFieldIdVal).data('marker-line-color');
+                                propObj.seriesColorVal        = $('#'+propObj.secChartFieldIdVal).data('series-color');
 
-                                console.log(propObj);
+                                //console.log(propObj);
 
                                 //Set disable labels on xAxis
                                 if(propObj.xAxisDisableState != undefined && propObj.xAxisDisableState == 'yes'){
@@ -101,14 +110,30 @@ var benchmarkObj = {
                                 }
 
                                 //Set tickInterval on yAxis
-                                if(propObj.yAxisTickIntervalVal != undefined){
+                                if(propObj.yAxisTickIntervalVal !== undefined){
                                     if(yAxisBothObj){
                                         yAxisBothObj['tickInterval'] =  parseInt(propObj.yAxisTickIntervalVal);
                                     }
                                 }                          
-
                             }
                         }
+                        
+                        /* Update theme colors for second chart with different colors values */
+                        Highcharts.theme = {
+                            colors: ["#785CB4", "#602870", "#814c3a", "#8c9192", "#804f9c", "#c3d600", "#d31b4f", "#a33f72", "#eec000", "#7aad33", "#aed07e", "#edea62"]
+                        };
+
+                        // Apply the theme
+                        Highcharts.setOptions(Highcharts.theme);
+                    }else{
+                        
+                        /* Apply default theme colors */
+                        Highcharts.theme = {
+                            colors: ["#d31b4f", "#a73f72", "#ffc000", "#9aaf33", "#bcd07e", "#766a62", "#c0b9b4", "#0096cc", "#814c3a", "#8c9192", "#804f9c", "#c3d600"],
+                        };
+
+                        // Apply the theme
+                        Highcharts.setOptions(Highcharts.theme);
                     }
 
                     /* Call to chart result after loops count */
@@ -122,9 +147,27 @@ var benchmarkObj = {
                         htmlTitle = '<div class="chartHTMLTitle" style="">'+propObj.chartTitle+'</div>';
                     }
 
+                    var chartLabelsObj = {},
+                        labelTopVal = mainloopCnt > 0 ? '-25px' : '-40px';
+                    /* Forming labels for chart */
+                    if(propObj.chartCustomLabelVal !== undefined){
+                        chartLabelsObj = {
+                            items: [{
+                                html: '<h3 class="chart-label-'+mainloopCnt+'">'+propObj.chartCustomLabelVal+'</h3>',
+                                style:{
+                                    fontWeight: 'bold',
+                                    fontSize: '14px',
+                                    left: '0',
+                                    top: labelTopVal
+                                }
+                            }]
+                        }
+                    } //chart-custom-label condition end
+
+
                     //Create the chart object and initiate the chart to draw on page
                     window.chart = new Highcharts.Chart({                        
-
+                        labels: chartLabelsObj,
                         exporting:{
                             enabled: propObj.chartExportingVal
                         },
@@ -165,7 +208,7 @@ var benchmarkObj = {
                         plotOptions: {
                             column: {
                                 stacking: propObj.columnStacking,
-                                minPointLength : 2,
+                                minPointLength : 15,
                                 dataLabels: {
                                     allowOverlap: true,
                                     inside: true,
@@ -177,9 +220,18 @@ var benchmarkObj = {
                                     //format: '{y:.2f} '+propObj.yAxisColLabelFormatVal,
                                     formatter:function(){
                                         if(this.y > 0){
-                                            var formatVal = Highcharts.numberFormat(this.y, 2, '.',''),
+                                            var formatVal, yVal;
+
+                                            if(propObj.yAxisDataTableDecimalVal !== undefined){
+
+                                                var decVal = parseInt(propObj.yAxisDataTableDecimalVal);
+                                               
+                                                formatVal = Highcharts.numberFormat(this.y, decVal, '.','');
                                                 yVal = formatVal + ' '+propObj.yAxisColLabelFormatVal;
+                                                
                                             return yVal;
+                                            }
+                                                
                                         }
                                     },
                                     //color: (Highcharts.theme && Highcharts.theme.dataLabelsColor) || 'white'
@@ -195,6 +247,9 @@ var benchmarkObj = {
                             categories: xAxisArr,
                             labels: {
                                 //rotation: -90
+                                groupedOptions: [{
+                                    y: 10
+                                }],
                                 formatter: function () {
                                     var obj = $.trim(this.value);
 
@@ -275,22 +330,38 @@ var benchmarkObj = {
                                         }
                                     }
 
-                                     Highcharts.charts[Highcharts.charts.length-1].series[1].update({
+                                    Highcharts.charts[Highcharts.charts.length-1].series[1].update({
                                         visible: true,
                                         showInLegend: true,
                                         dataLabels:{  
                                             enabled: false,
-                                            format: '{y:.2f}'
+                                            //format: '{y:.2f}'
+                                            format: '{y:.0f}'
                                         },
                                         type: 'scatter',
                                         marker: secondChartMarkerOptions !== undefined ? secondChartMarkerOptions : {}
-                                    }); 
+                                    });
 
                                     Highcharts.charts[Highcharts.charts.length-1].redraw();
                                 }
                             }   
 
                         } //propObj check end
+
+
+                        //Hiding yaxis data labels in chart if hideYaxisDataLabelsVal
+                        if('hideYaxisDataLabelsVal' in propObj){
+                            if(propObj.hideYaxisDataLabelsVal !== undefined && propObj.hideYaxisDataLabelsVal == 'yes'){
+                                var seriesLnth = Highcharts.charts[Highcharts.charts.length-1].series.length;
+                                for(var i=0; i<seriesLnth; i++){
+                                     Highcharts.charts[Highcharts.charts.length-1].series[i].update({                                       
+                                        dataLabels:{ 
+                                            enabled: false
+                                        }
+                                    });
+                                 }                               
+                            }                   
+                        }
 
                         var plotBandsObj = [], plotParentCatBand = [],           
                             series       = Highcharts.charts[Highcharts.charts.length-1].series,
@@ -384,8 +455,72 @@ var benchmarkObj = {
                 });   
             }
 
+            /* Set top padding to second chart to display label */
+            if(propObj.chartCustomLabelVal !== undefined){
+                var graphEleLnth = $('svg').length;
+                    //console.log(propObj.chartCustomLabelVal);
+
+                if(graphEleLnth > 1){
+                    $('svg').eq(graphEleLnth-1).css({paddingTop: '15px'});
+                }
+            }
+
+            /* Function for setting minPointLength on dataLabels to display on stacked column */
+            (function (H) {
+                H.wrap(H.seriesTypes.column.prototype, 'translate', function (proceed) {
+                    var series = this,
+                        chart = this.chart,
+                        options = this.options,
+                        stacking = this.options.stacking,
+                        yAxis = this.yAxis,
+                        threshold = options.threshold,
+                        stackThreshold = options.startFromThreshold ? threshold : 0,
+                        minPointLength = options.minPointLength;
+
+                    proceed.call(this);
+
+                    if(stacking != ''){
+                    if (minPointLength) {
+                        H.each(this.points, function (point, i) {
+                            var neg = series.negStacks && point.y < (stackThreshold ? 0 : threshold),
+                                s = series.index,
+                                shapeArgs = point.shapeArgs,
+                                otherPointArgs, otherPoint;
+
+                            while (s--) {
+                                if (chart.series[s].visible == false) // Ignore invisible charts
+                                continue;
+                                otherPoint = chart.series[s].points[i];
+                                otherPointArgs = chart.series[s].points[i].shapeArgs;
+                                if (shapeArgs.height === minPointLength) {
+                                    if (!neg) {
+                                        if(shapeArgs !== undefined && otherPointArgs !== undefined && otherPoint !== undefined){
+                                            if (shapeArgs.y + shapeArgs.height > otherPointArgs.y && otherPoint.y != null) {
+                                                shapeArgs.y = otherPointArgs.y - minPointLength;
+                                                    //console.log(shapeArgs.y + ' Inside if: shapeArgs.y value after calculating');
+                                            }
+                                        }
+                                    } else {
+                                        if(shapeArgs !== undefined && otherPointArgs !== undefined && otherPoint !== undefined){
+                                            if (shapeArgs.y < otherPointArgs.y + otherPointArgs.height && otherPoint.y != null) {
+                                                shapeArgs.y = otherPointArgs.y + minPointLength;
+                                                    //console.log(shapeArgs.y + ' Inside else: shapeArgs.y value after calculating');
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                        }
+                    }
+                });
+
+            }(Highcharts));
+	    
             //Hide the Highcharts bookmark after chart is rendered on web-page
             //$('svg').find('text:last').css({display:'none'});
+            //console.log(Highcharts.charts.length);
+            Highcharts.charts[Highcharts.charts.length-1].redraw();
         }
         
     },
@@ -458,6 +593,14 @@ var benchmarkObj = {
                         for(var k in childObj2) {
                             if(k == val){
                                 var pushItem = childObj2[val];
+
+                                /* If commonKeyValue is 0 then replace the 0 value with null */
+                                if(pushItem == 0){
+                                    pushItem = null;
+                                   // minPointLength custom function causing simple column charts to stack rather plotting horizontally
+                                   //Then we need to set minPointLength to 0 for that case: Other way of doing this is added
+                                   //load event on chart itself.                                   
+                                }
 
                                 commonKeyValue.push(pushItem);
                             }
@@ -589,8 +732,32 @@ var benchmarkObj = {
                                 seriesDataArray[atSeriesPos]['showInLegend'] = false;
                                 seriesDataArray[atSeriesPos]['dataLabels'] = {  
                                     enabled: true,
-                                    format: '{y:.2f}'
+                                    //format: '{y:.2f}'
+                                    format: '{y:.0f}'
                                 };
+                            }
+                        }
+                    }                   
+                }
+
+                //color for last series data
+                if('seriesColorVal' in propObj){
+                    if(propObj.seriesColorVal !== undefined){
+                        var sColorVal = propObj.seriesColorVal, splitV1, splitV2;
+                        if(sColorVal.indexOf('-') != -1){
+                            splitV1 = sColorVal.split('-')[0],
+                            splitV2 = sColorVal.split('-')[1];                                
+                            if(splitV2 == 'lastNodeDown1'){
+                                atSeriesPos = seriesDataArray.length-2; // on second last node of array
+                            }
+                            if(atSeriesPos !== undefined){        
+                                seriesDataArray[atSeriesPos]['color'] = splitV1;
+                            }
+                        }else
+                        {
+                            atSeriesPos = seriesDataArray.length-1;
+                            if(atSeriesPos !== undefined){        
+                                seriesDataArray[atSeriesPos]['color'] = sColorVal;
                             }
                         }
                     }                   

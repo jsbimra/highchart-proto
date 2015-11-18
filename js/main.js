@@ -40,14 +40,18 @@ $(function(){
                 hidEle                = $.trim(me.val()), 
                 chartTypeVal          = $.trim(me.find('option:selected').data('chart-type')), 
                 chartHeightVal        = $.trim(me.find('option:selected').data('chart-height')),                            
+                chartCustomLabel      = $.trim(me.find('option:selected').data('chart-custom-label')),    
                 chartTitle            = $.trim(me.find('option:selected').text()),
                 chartSubTitle         = $.trim(me.find('option:selected').data('sub-title')),
                 chartExporting        = $.trim(me.find('option:selected').data('chart-exporting')),
                 yAxisText             = $.trim(me.find('option:selected').data('yaxis-text')),
+                yAxisDataTableDecimal = $.trim(me.find('option:selected').data('yaxis-datalabels-decimal')),
+                hideYaxisDataLabels = $.trim(me.find('option:selected').data('hide-yaxis-datalabels')),
                 yAxisBothSide         = $.trim(me.find('option:selected').data('yaxis-both-side')),
                 yAxisOppSideTitle     = $.trim(me.find('option:selected').data('yaxis-oppside-title')),
                 yAxisColLabelFormat   = $.trim(me.find('option:selected').data('yaxis-column-label-format')),
                 yAxisLeftLabelFormat  = $.trim(me.find('option:selected').data('yaxis-left-label-format')),
+                yAxisOppLabelFormat   = $.trim(me.find('option:selected').data('yaxis-opp-label-format')),
                 yAxisTickInterval     = $.trim(me.find('option:selected').data('yaxis-tick-interval')),
                 columnStacking        = $.trim(me.find('option:selected').data('stacking')),
                 marker                = $.trim(me.find('option:selected').data('marker')),
@@ -58,12 +62,14 @@ $(function(){
                 secChartFieldId       = $.trim(me.find('option:selected').data('second-chart-field-id')),
                 seriesColWidth        = $.trim(me.find('option:selected').data('series-point-width')),
                 endOnTick             = $.trim(me.find('option:selected').data('end-on-tick')),
+                seriesColor           = $.trim(me.find('option:selected').data('series-color')),
                 hideXaxis0LevelLabel  = $.trim(me.find('option:selected').data('hide-xaxis-0level-label')),
 
                 yAxisMax              = $.trim(me.find('option:selected').data('yaxis-max')),                            
                 lastDataLablePos      = $.trim(me.find('option:selected').data('last-datalabels-pos')),                            
                 
                 plotKeys              = $.trim(me.find('option:selected').data('plot-keys'));
+
 
             //console.log(chartTypeVal + ' '+ chartTitle);
 
@@ -77,16 +83,20 @@ $(function(){
                 setTimeout(function(){
                     propObj = {
                         chartContainer          : 'benchmarkChart',
-                        chartHeight             :  (chartHeightVal !== undefined && chartHeightVal != '') ? chartHeightVal : 550,
+                        chartHeight             :  (chartHeightVal !== undefined && chartHeightVal != '') ? chartHeightVal : 650,
                         chartTitle              : chartTitle !== undefined ? chartTitle : '',
                         chartSubTitle           : chartSubTitle !== undefined ? chartSubTitle : '',
                         chartExportingVal       : (chartExporting !== undefined && chartExporting != '') ? chartExporting : false,
+                        chartCustomLabelVal: (chartCustomLabel !== undefined && chartCustomLabel != '') ? chartCustomLabel : undefined,
+                        yAxisDataTableDecimalVal: (yAxisDataTableDecimal !== undefined && yAxisDataTableDecimal != '') ? yAxisDataTableDecimal : 0,
+                        hideYaxisDataLabelsVal: (hideYaxisDataLabels !== undefined && hideYaxisDataLabels != '') ? hideYaxisDataLabels : true,
                         highlightCompanyBar     : 'SW Bremen',
                         yAxisText               : yAxisText !== undefined ? yAxisText : 'no yAxisText set',
                         yAxisBothSideObj        : yAxisBothSide !== undefined ? yAxisBothSide : undefined,
                         yAxisOppSideTitleVal   : yAxisOppSideTitle !== undefined ? yAxisOppSideTitle : '',
                         yAxisColLabelFormatVal     : yAxisColLabelFormat !== undefined ? yAxisColLabelFormat : '',
                         yAxisLeftLabelFormatVal     : yAxisLeftLabelFormat !== undefined ? '{value}' + yAxisLeftLabelFormat : '{value}',
+                        yAxisOppLabelFormatVal     : yAxisOppLabelFormat !== undefined ? '{value}' + yAxisOppLabelFormat : '{value}',
                         yAxisTickIntervalVal        : (yAxisTickInterval !== undefined && yAxisTickInterval != '') ? parseInt(yAxisTickInterval) : null,
                         chartMarker             : marker !== undefined ? marker : '',
                         chartMarkerColor        : markerColor !== undefined ? markerColor : 'black',
@@ -99,8 +109,10 @@ $(function(){
                         endOnTickVal            : (endOnTick !== undefined && endOnTick != '') ? (endOnTick == 'false' ? false : true ): true,                                    
                         hideXaxis0LevelLabelVal : hideXaxis0LevelLabel !== undefined ? hideXaxis0LevelLabel : undefined,
                         yAxisMaxVal             : yAxisMax !== undefined ? yAxisMax : null,
-                        lastDataLablePosVal     : (lastDataLablePos !== undefined && lastDataLablePos != '') ? lastDataLablePos : undefined,                                    
+                        lastDataLablePosVal     : (lastDataLablePos !== undefined && lastDataLablePos != '') ? lastDataLablePos : undefined,
+                        seriesColorVal      : (seriesColor !== undefined && seriesColor != '') ? seriesColor : undefined,
                         totalPlotKeys           : plotKeys !== undefined ? plotKeys : undefined
+
                     };
 
                     /* Show the chart holder container */
