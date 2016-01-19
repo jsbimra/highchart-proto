@@ -82,6 +82,8 @@ var benchmarkObj = {
                                 propObj.chartMarkerLineWidth  = $('#'+propObj.secChartFieldIdVal).data('marker-line-width');
                                 propObj.chartMarkerLineColor  = $('#'+propObj.secChartFieldIdVal).data('marker-line-color');
                                 propObj.seriesColorVal        = $('#'+propObj.secChartFieldIdVal).data('series-color');
+                                propObj.dataLabelDecimalsVal  = $('#'+propObj.secChartFieldIdVal).data('decimal-value');
+
 
                                 //console.log(propObj);
 
@@ -116,6 +118,7 @@ var benchmarkObj = {
                         /* Update theme colors for second chart with different colors values */
                         Highcharts.theme = {
                             colors: ["#785CB4", "#602870", "#814c3a", "#8c9192", "#804f9c", "#c3d600", "#d31b4f", "#a33f72", "#eec000", "#7aad33", "#aed07e", "#edea62"]
+                            //colors: ["#d31b4f", "#a73f72", "#ffc000", "#9aaf33", "#bcd07e", "#766a62", "#c0b9b4", "#0096cc", "#814c3a", "#8c9192", "#804f9c", "#c3d600"]
                         };
                         // Apply the theme
                         Highcharts.setOptions(Highcharts.theme);
@@ -123,6 +126,7 @@ var benchmarkObj = {
                         /* Apply default theme colors */
                         Highcharts.theme = {
                             colors: ["#d31b4f", "#a73f72", "#ffc000", "#9aaf33", "#bcd07e", "#766a62", "#c0b9b4", "#0096cc", "#814c3a", "#8c9192", "#804f9c", "#c3d600"],
+                            //colors: ["#ff8400", "#de6148", "#ffd950", "#4ce087", "#4cb1e0", "#a0afbd", "#c96a04", "#ad3f29", "#a5871b", "#249852", "#318ab3", "#606b75"]
                         };
                         // Apply the theme
                         Highcharts.setOptions(Highcharts.theme);
@@ -345,6 +349,107 @@ var benchmarkObj = {
                                  }                               
                             }                   
                         }
+                        if ('dataLabelDecimalsVal' in propObj) {
+                            if (propObj.dataLabelDecimalsVal !== undefined) {
+                                var dlDecimalStr = propObj.dataLabelDecimalsVal, nodeAtStr, nodeAt = 0, dInteger;
+                                var curChartLastSeriesName = [];
+                                if (dlDecimalStr.indexOf(',') !== -1) {
+                                    plotTooltipValues('commaSeparated', dlDecimalStr);
+                                } else {
+                                    plotTooltipValues('single', dlDecimalStr);
+                                }
+                                /* Function defination for plotTooltipValues */
+                                function plotTooltipValues(splitType, dlDecimalStr) {
+                                    if (splitType === 'commaSeparated') {
+                                        var commaSepArrays = dlDecimalStr.split(',');
+                                        separateSplitsArray(commaSepArrays);
+                                    }
+                                    else {
+                                        separateSplitsArray([dlDecimalStr]);
+                                    }
+                                }
+                                /* Function defination for separateSplitsArray */
+                                function separateSplitsArray(arraysValues) {
+                                    if (arraysValues !== undefined && arraysValues.length != 0) {
+                                        //Loop the arraysValues 
+                                        for (var r = 0; r < arraysValues.length; r++) {
+                                            if (arraysValues[r] !== undefined && arraysValues[r].indexOf('-') !== -1) {
+                                                var splitVals = arraysValues[r].split('-');
+                                                for (var i = 0; i < splitVals.length; i++) {
+                                                    if ((splitVals.length / 2) == i) { break; }
+                                                    nodeAtStr = splitVals[i];
+                                                    dInteger = parseInt(splitVals[i + 1]);
+                                                    //console.log(nodeAtStr + ' ' + dInteger);
+                                                    nodeAt = (nodeAtStr === 'lastNode' ? 1 : nodeAt);
+                                                    nodeAt = (nodeAtStr === 'lastNodeDown1' ? 2 : nodeAt);
+                                                    nodeAt = (nodeAtStr === 'lastNodeDown2' ? 3 : nodeAt);
+
+
+                                                    if (nodeAt !== undefined && dInteger !== undefined) {
+                                                        var seriesLength = Highcharts.charts[Highcharts.charts.length - 1].series.length;
+
+                                                        curChartLastSeriesName.push(Highcharts.charts[Highcharts.charts.length - 1].series[seriesLength - nodeAt].name);
+
+
+                                                    }
+                                                }//for end 
+                                            }                                            
+                                        }
+                                    }
+                                }
+                                /* Function defination for updateTooltipOnHighChart */
+                                function updateTooltipOnHighChart(curChartLastSeriesName, dInteger) {
+
+                                    console.log(curChartLastSeriesName);
+
+                                    if ((curChartLastSeriesName !== undefined && curChartLastSeriesName.length !=0) && dInteger !== undefined) {
+                                        return {
+                                            curChartLastSeriesName : curChartLastSeriesName,
+                                            dInteger : dInteger
+                                        }                                        
+                                    }
+                                }
+
+                                Highcharts.charts[Highcharts.charts.length - 1].tooltip.options.formatter = function () {
+                                
+                                    //Call to update chart
+                                    var tempObj = updateTooltipOnHighChart(curChartLastSeriesName, dInteger);
+                                    console.log(tempObj);
+                                
+                                    var matchedFlag = false;
+                                    for(var j=0; j<tempObj.curChartLastSeriesName.length; j++){
+
+                                        if (tempObj.curChartLastSeriesName[j] == this.series.name) {
+                                            //console.log('matched ');
+                                            matchedFlag = true;
+                                            break;
+                                        } else {
+                                            matchedFlag = false;
+                                            //console.log('NOT matched ');                                                    
+                                        }   
+                                    }
+
+                                    /*As need to sepearte based on flag because there is a return statement in the 
+                                    code which doesn't allow to complete the for loop above, so need to break the code down
+                                    */
+                                    if(matchedFlag){
+                                        if (this.x.name != '' && this.x.name != ' ') {
+                                            return '<b>' + this.x + '</b><br/>' +
+                                            this.series.name + ': ' + Highcharts.numberFormat(this.y, dInteger, '.', '');
+                                        } else {
+                                            return this.series.name + ': ' + Highcharts.numberFormat(this.y, dInteger, '.', '');
+                                        }
+                                    }else{
+                                        if (this.x.name != '' && this.x.name != ' ') {
+                                            return '<b>' + this.x + '</b><br/>' +
+                                            this.series.name + ': ' + Highcharts.numberFormat(this.y, 0, '.', '');
+                                        } else {
+                                            return this.series.name + ': ' + Highcharts.numberFormat(this.y, 0, '.', '');
+                                        }
+                                    }
+                                };
+                            }                   
+                        }
 
                         var plotBandsObj = [], plotParentCatBand = [],           
                             series       = Highcharts.charts[Highcharts.charts.length-1].series,
@@ -371,11 +476,14 @@ var benchmarkObj = {
 
                                     //console.log(parentCatName);
 
+                                    //Theme for Average values
                                     plotBandsObj.push({ color: '#cbfbb3', borderColor: '#69b443', borderWidth: 2, from: fromVal, to: toVal, zIndex: 2 });
+                                    //plotBandsObj.push({ color: '#ccffb3', borderColor: '#66cc66', borderWidth: 2, from: fromVal, to: toVal, zIndex: 2 });
                                 }
-
+                                //Theme for Average values
                                 if(name == ' ' && name != propObj.highlightCompanyBar){
                                     plotBandsObj.push({ color: '#cbfbb3', borderColor: '#69b443', borderWidth: 2, from: -0.5, to: 0.5, zIndex: 2 });
+                                    //plotBandsObj.push({ color: '#ccffb3', borderColor: '#66cc66', borderWidth: 2, from: -0.5, to: 0.5, zIndex: 2 });
                                 }
                                 
                                 if(name != ' ' && name != '' && name == propObj.highlightCompanyBar){   //For highlight specific company name
@@ -384,7 +492,9 @@ var benchmarkObj = {
                                     toVal   = idx + .5;
                                     parentCatName = obj.category.parent.name;
 
+                                    //Theme for default company name band
                                     plotBandsObj.push({ color: '#fdf6ac', borderColor: '#d5c617', borderWidth: 2, from: fromVal, to: toVal, zIndex: 2 });
+                                    //plotBandsObj.push({ color: '#dbfbff', borderColor: '#33ccff', borderWidth: 2, from: fromVal, to: toVal, zIndex: 2 });
 
                                     /* Plotting parent category band */
                                     $.each(xAxis0.categoriesTree,function(idx,treeObj){
@@ -399,8 +509,9 @@ var benchmarkObj = {
                                                 toVal2   = tickEndAt + .5;
 
                                             //console.log(fromVal2 + ' ' + toVal2 );
-
+                                            //Background band theme
                                             plotParentCatBand.push({ color: '#c8ecf1', borderColor: '#8ec6ce', borderWidth: 2, from: fromVal2, to: toVal2, zIndex: 1 });
+                                            //plotParentCatBand.push({ color: '#e9e9e9', borderColor: '#ccc', borderWidth: 2, from: fromVal2, to: toVal2, zIndex: 1 });
                                         }
                                     });
                                 }
@@ -700,6 +811,10 @@ var benchmarkObj = {
                 if('lastDataLablePosVal' in propObj){
                     if(propObj.lastDataLablePosVal !== undefined){
                         if(propObj.lastDataLablePosVal == 'top'){
+                            var lFormat;
+                            if(propObj.lastDataLableDecimalsVal !== undefined){
+                                lFormat = '{y:.'+propObj.lastDataLableDecimalsVal+'+f}';
+                            }
                             atSeriesPos = seriesDataArray.length-1;
 
                             if(atSeriesPos !== undefined){                                    
@@ -708,7 +823,7 @@ var benchmarkObj = {
                                 seriesDataArray[atSeriesPos]['dataLabels'] = {  
                                     enabled: true,
                                     //format: '{y:.2f}'
-                                    format: '{y:.0f}'
+                                    format: lFormat
                                 };
                             }
                         }
